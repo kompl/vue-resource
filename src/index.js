@@ -4,49 +4,31 @@
 
 import Url from './url/index';
 import Http from './http/index';
-import Promise from './promise';
-import Resource from './resource';
 import Util, {options} from './util';
 
-function plugin(Vue) {
+function plugin(app) {
 
     if (plugin.installed) {
         return;
     }
 
-    Util(Vue);
+    Util(app);
 
-    Vue.url = Url;
-    Vue.http = Http;
-    Vue.resource = Resource;
-    Vue.Promise = Promise;
+    app.config.globalProperties.url = Url;
+    app.config.globalProperties.http = Http;
 
-    Object.defineProperties(Vue.prototype, {
-
+    Object.defineProperties(app.config.globalProperties, {
         $url: {
             get() {
-                return options(Vue.url, this, this.$options.url);
+                return options(app.url, this, this.$options.url);
             }
         },
 
         $http: {
             get() {
-                return options(Vue.http, this, this.$options.http);
+                return options(app.http, this, this.$options.http);
             }
         },
-
-        $resource: {
-            get() {
-                return Vue.resource.bind(this);
-            }
-        },
-
-        $promise: {
-            get() {
-                return (executor) => new Vue.Promise(executor, this);
-            }
-        }
-
     });
 }
 
