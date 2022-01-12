@@ -1345,115 +1345,26 @@ Http.interceptors = ['before', 'method', 'jsonp', 'json', 'form', 'header', 'cor
 });
 
 /**
- * Service for interacting with RESTful services.
- */
-function Resource(url, params, actions, options$$1) {
-  var self = this || {},
-      resource = {};
-  actions = assign({}, Resource.actions, actions);
-  each(actions, function (action, name) {
-    action = merge({
-      url: url,
-      params: assign({}, params)
-    }, options$$1, action);
-
-    resource[name] = function () {
-      return (self.$http || Http)(opts(action, arguments));
-    };
-  });
-  return resource;
-}
-
-function opts(action, args) {
-  var options$$1 = assign({}, action),
-      params = {},
-      body;
-
-  switch (args.length) {
-    case 2:
-      params = args[0];
-      body = args[1];
-      break;
-
-    case 1:
-      if (/^(POST|PUT|PATCH)$/i.test(options$$1.method)) {
-        body = args[0];
-      } else {
-        params = args[0];
-      }
-
-      break;
-
-    case 0:
-      break;
-
-    default:
-      throw 'Expected up to 2 arguments [params, body], got ' + args.length + ' arguments';
-  }
-
-  options$$1.body = body;
-  options$$1.params = assign({}, options$$1.params, params);
-  return options$$1;
-}
-
-Resource.actions = {
-  get: {
-    method: 'GET'
-  },
-  save: {
-    method: 'POST'
-  },
-  query: {
-    method: 'GET'
-  },
-  update: {
-    method: 'PUT'
-  },
-  remove: {
-    method: 'DELETE'
-  },
-  "delete": {
-    method: 'DELETE'
-  }
-};
-
-/**
  * Install plugin.
  */
 
-function plugin(Vue) {
+function plugin(app) {
   if (plugin.installed) {
     return;
   }
 
-  Util(Vue);
-  Vue.url = Url;
-  Vue.http = Http;
-  Vue.resource = Resource;
-  Vue.Promise = PromiseObj;
-  Object.defineProperties(Vue.prototype, {
+  Util(app);
+  app.config.globalProperties.url = Url;
+  app.config.globalProperties.http = Http;
+  Object.defineProperties(app.config.globalProperties, {
     $url: {
       get: function get() {
-        return options(Vue.url, this, this.$options.url);
+        return options(app.url, this, this.$options.url);
       }
     },
     $http: {
       get: function get() {
-        return options(Vue.http, this, this.$options.http);
-      }
-    },
-    $resource: {
-      get: function get() {
-        return Vue.resource.bind(this);
-      }
-    },
-    $promise: {
-      get: function get() {
-        var _this = this;
-
-        return function (executor) {
-          return new Vue.Promise(executor, _this);
-        };
+        return options(app.http, this, this.$options.http);
       }
     }
   });
